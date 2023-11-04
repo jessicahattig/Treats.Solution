@@ -7,5 +7,6 @@ namespace SweetAndSavory.Models
     public int TreatId { get; set; }
     public string Name { get; set; }
     public List<TreatFlavor> JoinEntities { get; }
+    public ApplicationUser User { get; set; } 
   }
 }

@@ -41,7 +41,7 @@ namespace SweetAndSavory.Controllers
       Flavor thisFlavor = _db.Flavors
           .Include(flavor => flavor.JoinEntities)
           .ThenInclude(join => join.Treat)
-          .FirstOrDefault(tag => flavor.flavorId == id);
+          .FirstOrDefault(flavor => flavor.FlavorId == id);
       return View(thisFlavor);
     }
 
@@ -80,14 +80,14 @@ namespace SweetAndSavory.Controllers
     public ActionResult AddTreat(Flavor flavor, int treatId)
     {
       #nullable enable
-      TreatFlavor? joinEntity = _db.TreatFlavors.FirstOrDefault(join => (join.TreatId == treatId && join.FlavorId == flvaor.FlavorId));
+      TreatFlavor? joinEntity = _db.TreatFlavors.FirstOrDefault(join => (join.TreatId == treatId && join.FlavorId == flavor.FlavorId));
       #nullable disable
       if (joinEntity == null && treatId != 0)
       {
-        _db.TreatFlavors.Add(new TreatFlavor() { TreatId = treatId, FlavorId = treat.FlavorId });
+        _db.TreatFlavors.Add(new TreatFlavor() { TreatId = treatId, FlavorId = flavor.FlavorId });
         _db.SaveChanges();
       }
-      return RedirectToAction("Details", new { id = treat.TreatId });
+      return RedirectToAction("Details", new { id = flavor.FlavorId });
     }
 
     public ActionResult Edit(int id)
@@ -99,14 +99,14 @@ namespace SweetAndSavory.Controllers
     [HttpPost]
     public ActionResult Edit(Flavor flavor)
     {
-      _db.Tags.Update(flavor);
+      _db.Flavors.Update(flavor);
       _db.SaveChanges();
       return RedirectToAction("Index");
     }
 
     public ActionResult Delete(int id)
     {
-      Flavor thisFlavor = _db.Flavors.FirstOrDefault(flavors => flvaors.FlavorId == id);
+      Flavor thisFlavor = _db.Flavors.FirstOrDefault(flavors => flavors.FlavorId == id);
       return View(thisFlavor);
     }
 

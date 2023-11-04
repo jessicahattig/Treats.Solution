@@ -8,7 +8,7 @@ namespace SweetAndSavory.controller
 {
   public class AccountController : Controller
   {
-    private readonly SweetAndSacoryContext _db;
+    private readonly SweetAndSavoryContext _db;
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly SignInManager<ApplicationUser> _signInManager;
 
