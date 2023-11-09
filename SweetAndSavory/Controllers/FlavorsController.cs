@@ -11,28 +11,19 @@ using System.Linq;
 
 namespace SweetAndSavory.Controllers
 {
+  [Authorize]
   public class FlavorsController : Controller
   {
     private readonly SweetAndSavoryContext _db;
-    private readonly UserManager<ApplicationUser> _userManager;
 
-
-
-    public FlavorsController(UserManager<ApplicationUser> userManager, SweetAndSavoryContext db)
+    public FlavorsController(SweetAndSavoryContext db)
     {
-      _userManager = userManager;
       _db = db;
     }
 
-    public async Task<ActionResult> Index()
+    public ActionResult Index()
     {
-      string userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-      ApplicationUser currentUser = await _userManager.FindByIdAsync(userId);
-      List<Flavor> userFlavors = _db.Flavors
-                          .Where(entry => entry.User.Id == currentUser.Id)
-                          // .Include(treat => treat.Flavor)
-                          .ToList();
-      return View(userFlavors);
+      return View(_db.Flavors.ToList());
     }
 
 
@@ -49,24 +40,13 @@ namespace SweetAndSavory.Controllers
     {
       return View();
     }
-    
+
     [HttpPost]
-    public async Task<ActionResult> Create(Flavor flavor, int TreatId)
+    public ActionResult Create(Flavor flavor)
     {
-        if (!ModelState.IsValid)
-        {
-            ViewBag.TreatId = new SelectList(_db.Treats, "TreatId", "Name");
-            return View(flavor);
-        }
-        else
-        {
-            string userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            ApplicationUser currentUser = await _userManager.FindByIdAsync(userId);
-            flavor.User = currentUser;
-            _db.Flavors.Add(flavor);
-            _db.SaveChanges();
-            return RedirectToAction("Index");
-        }
+      _db.Flavors.Add(flavor);
+      _db.SaveChanges();
+      return RedirectToAction("Index");
     }
 
     public ActionResult AddTreat(int id)
@@ -79,9 +59,9 @@ namespace SweetAndSavory.Controllers
     [HttpPost]
     public ActionResult AddTreat(Flavor flavor, int treatId)
     {
-      #nullable enable
+#nullable enable
       TreatFlavor? joinEntity = _db.TreatFlavors.FirstOrDefault(join => (join.TreatId == treatId && join.FlavorId == flavor.FlavorId));
-      #nullable disable
+#nullable disable
       if (joinEntity == null && treatId != 0)
       {
         _db.TreatFlavors.Add(new TreatFlavor() { TreatId = treatId, FlavorId = flavor.FlavorId });

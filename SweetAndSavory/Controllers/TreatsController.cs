@@ -11,68 +11,53 @@ using System.Linq;
 
 namespace SweetAndSavory.AddControllersWithViews
 {
-    [Authorize]
-    public class TreatsController : Controller
-    {
-        private readonly SweetAndSavoryContext _db;
-        private readonly UserManager<ApplicationUser> _userManager; 
-
+  [Authorize]
+  public class TreatsController : Controller
+  {
+    private readonly SweetAndSavoryContext _db;
     public TreatsController(UserManager<ApplicationUser> userManager, SweetAndSavoryContext db)
     {
-      _userManager = userManager;
       _db = db;
     }
 
-    public async Task<ActionResult> Index()
+    public ActionResult Index()
     {
-      string userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-      ApplicationUser currentUser = await _userManager.FindByIdAsync(userId);
-      List<Treat> userTreats = _db.Treats
-                          .Where(entry => entry.User.Id == currentUser.Id)
-                          // .Include(treat => treat.Flavor)
-                          .ToList();
-      return View(userTreats);
+      List<Treat> model = _db.Treats.ToList();
+      return View(model);
     }
 
     public ActionResult Create()
     {
-      ViewBag.FlavorId = new SelectList(_db.Flavors, "FlavorId", "Description");
       return View();
     }
 
     [HttpPost]
-    public async Task<ActionResult> Create(Treat treat, int TreatId)
+    public ActionResult Create(Treat treat)
     {
-        if (!ModelState.IsValid)
-        {
-            ViewBag.FlavorId = new SelectList(_db.Flavors, "FlavorId", "Description");
-            return View(treat);
-        }
-        else
-        {
-            string userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            ApplicationUser currentUser = await _userManager.FindByIdAsync(userId);
-            treat.User = currentUser;
-            _db.Treats.Add(treat);
-            _db.SaveChanges();
-            return RedirectToAction("Index");
-        }
+      if (!ModelState.IsValid)
+      {
+        return View(treat);
+      }
+      else
+      {
+        _db.Treats.Add(treat);
+        _db.SaveChanges();
+        return RedirectToAction("Index");
+      }
     }
 
     public ActionResult Details(int id)
     {
       Treat thisTreat = _db.Treats
-          // .Include(treat => treat.Flavor)
           .Include(treat => treat.JoinEntities)
           .ThenInclude(join => join.Flavor)
           .FirstOrDefault(treat => treat.TreatId == id);
       return View(thisTreat);
     }
-    
+
     public ActionResult Edit(int id)
     {
       Treat thisTreat = _db.Treats.FirstOrDefault(treat => treat.TreatId == id);
-      ViewBag.FlavorId = new SelectList(_db.Flavors, "FlavorId", "Description");
       return View(thisTreat);
     }
 
@@ -109,16 +94,16 @@ namespace SweetAndSavory.AddControllersWithViews
     [HttpPost]
     public ActionResult AddFlavor(Treat treat, int flavorId)
     {
-      #nullable enable
+#nullable enable
       TreatFlavor? joinEntity = _db.TreatFlavors.FirstOrDefault(join => (join.FlavorId == flavorId && join.TreatId == treat.TreatId));
-      #nullable disable
+#nullable disable
       if (joinEntity == null && flavorId != 0)
       {
         _db.TreatFlavors.Add(new TreatFlavor() { FlavorId = flavorId, TreatId = treat.TreatId });
         _db.SaveChanges();
       }
       return RedirectToAction("Details", new { id = treat.TreatId });
-    }   
+    }
 
     [HttpPost]
     public ActionResult DeleteJoin(int joinId)
@@ -127,7 +112,6 @@ namespace SweetAndSavory.AddControllersWithViews
       _db.TreatFlavors.Remove(joinEntry);
       _db.SaveChanges();
       return RedirectToAction("Index");
-    } 
-
     }
+  }
 }
